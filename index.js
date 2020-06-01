@@ -1,14 +1,15 @@
 const express = require('express');
 const app = express()
+const cors = require('cors')
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const fw = require('./fileWatcher.js');
 const { exec } = require('child_process');
 
-
-
 //var router = express.Router();
 app.use(express.json())
+app.use(cors());
+app.options('*', cors());  // enable pre-flight
 
 //websocket
 io.on('connection', client => {
@@ -29,11 +30,15 @@ io.on('connection', client => {
 
 
 //rest waiting
-app.post('ports',(req,res,next)=>{
+app.post('/ports',(req,res,next)=>{
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader("Access-Control-Allow-Headers", "*");
+
     getPorts((ports)=>{
         io.emit('ports-updated',String(ports));
     });
-    next();
+    res.end()
 })
 
 //ge Port function
