@@ -3,6 +3,7 @@ const app = express()
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const fw = require('./fileWatcher.js');
+const { exec } = require('child_process');
 
 
 
@@ -10,18 +11,49 @@ const fw = require('./fileWatcher.js');
 app.use(express.json())
 
 //websocket
-
 io.on('connection', client => {
+    client.on('connected', () => {
+        console.log(client.conn.remoteAddress);
+        console.log('connected')
+    });
+
     client.on('event', data => {
         console.log(data)
     });
 
     client.on('disconnect', () => {
-        console.log(client);
+        console.log(client.conn.remoteAddress);
         console.log('disconnected')
     });
 });
 
+
+//rest waiting
+app.post('ports',(req,res,next)=>{
+    getPorts((ports)=>{
+        io.emit('ports-updated',String(ports));
+    });
+    next();
+})
+
+//ge Port function
+function getPorts(callback){
+    exec('sudo netstat -tulpn | grep LISTEN', (err, stdout, stderr) => {
+        if (err) {
+            //some err occurred
+            callback(err);
+        } else {
+            callback(String(stdout +"\n\n\n####\n\n\n" + stderr));
+        }
+    });
+}
+
+//port timer
+setTimeout(getPorts((ports)=>{
+    io.emit('ports-updated',String(ports));
+}),60000);
+
+//filewatcher
 var fileToWatch;
 
 console.log("Launched with args : ")
