@@ -49,9 +49,11 @@ function getPorts(callback){
 }
 
 //port timer
-setTimeout(getPorts((ports)=>{
-    io.emit('ports-updated',String(ports));
-}),60000);
+setTimeout(()=>{
+    getPorts((ports)=>{
+        io.emit('ports-updated',String(ports));
+    })
+},60000);
 
 //filewatcher
 var fileToWatch;
