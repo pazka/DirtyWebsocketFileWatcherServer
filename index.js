@@ -38,6 +38,7 @@ app.post('ports',(req,res,next)=>{
 
 //ge Port function
 function getPorts(callback){
+    console.log("looking for ports");
     exec('sudo netstat -tulpn | grep LISTEN', (err, stdout, stderr) => {
         if (err) {
             //some err occurred
@@ -66,6 +67,7 @@ if(!process.argv[2]){
 }
 
 fw.startWatch("test.txt",(data)=>{
+    console.log("sending data");
     io.emit('list-updated',String(data));
 });
 
