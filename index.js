@@ -23,6 +23,10 @@ io.on('connection', client => {
 });
 
 var fileToWatch;
+
+console.log("Launched with args : ")
+console.log(process.argv);
+
 if(!process.argv[2]){
     fileToWatch = 'test.txt';
 }
@@ -32,3 +36,4 @@ fw.startWatch("test.txt",(data)=>{
 });
 
 server.listen(43000)
+console.log("listening on " + 43000)
