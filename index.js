@@ -59,7 +59,7 @@ setTimeout(()=>{
     getPorts((ports)=>{
         io.emit('ports-updated',String(ports));
     })
-},60000);
+},5000);
 
 //filewatcher
 var fileToWatch;
