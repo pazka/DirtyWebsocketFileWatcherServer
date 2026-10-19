@@ -1,7 +1,7 @@
 // Upgrade safety net (see TESTING.md): black-box characterization tests of index.js, started like
 // `npm start`, in a temp working dir (it watches ./test.txt there, so the repo's test.txt is never touched).
 // They pin what the server does TODAY so a Node, Express or Socket.IO bump that changes behaviour fails.
-// Node built-ins + socket.io-client 2.3.0, already in the lockfile (dependency of socket.io 2):
+// Node built-ins + socket.io-client 2.x (explicit devDependency: the real client of the existing v2 users):
 //   node --test --test-reporter=spec test/server.test.js
 'use strict'
 
@@ -99,6 +99,41 @@ test('unknown routes are 404', async () => {
     assert.equal((await fetch(BASE + '/nope')).status, 404)
     assert.equal((await fetch(BASE + '/ports')).status, 404) // GET is not routed
 })
+
+// Existing clients of this server are Socket.IO v2 (Engine.IO protocol 3) and browsers start them on
+// HTTP long-polling, then upgrade to websocket: that path must keep working.
+test('a Socket.IO v2 client (Engine.IO 3, polling then websocket) receives "list-updated" and "ports-updated"', async () => {
+    const c = await new Promise((resolve, reject) => {
+        const s = ioClient(BASE, {reconnection: false, forceNew: true}) // default transports: polling, websocket
+        s.on('connect', () => resolve(s))
+        s.on('connect_error', reject)
+    })
+    try {
+        assert.equal(c.io.engine.transport.query.EIO, 3)
+        await bothEvents(c, 'room-v2-polling\n')
+    } finally {
+        c.close()
+    }
+})
+
+test('CORS: a cross-origin Engine.IO 3 polling handshake is allowed (origin echoed, with credentials)', async () => {
+    const r = await fetch(BASE + '/socket.io/?EIO=3&transport=polling', {headers: {origin: 'https://anywhere.example'}})
+    assert.equal(r.status, 200)
+    assert.equal(r.headers.get('access-control-allow-origin'), 'https://anywhere.example')
+    assert.equal(r.headers.get('access-control-allow-credentials'), 'true')
+    assert.match(await r.text(), /"sid":/)
+})
+
+async function bothEvents(c, content) {
+    const list = next(c, 'list-updated')
+    fs.writeFileSync(path.join(work, 'test.txt'), content)
+    assert.equal(await list, content)
+    const ports = next(c, 'ports-updated')
+    assert.equal((await fetch(BASE + '/ports', {method: 'POST'})).status, 200)
+    const p = await ports
+    assert.equal(typeof p, 'string')
+    assert.ok(p.includes('####') || p.includes('sudo netstat -tulpn'), p.slice(0, 200))
+}
 
 test('the watched path cannot be chosen: the CLI argument is ignored, only ./test.txt is watched', async () => {
     await stopServer(server)

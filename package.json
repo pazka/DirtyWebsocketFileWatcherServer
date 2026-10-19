@@ -15,5 +15,8 @@
     "http": "0.0.1-security",
     "node-persist": "^3.0.5",
     "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "2.5.0"
   }
 }
