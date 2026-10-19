@@ -11,7 +11,7 @@ const { exec } = require('child_process');
 //var router = express.Router();
 app.use(express.json())
 app.use(cors());
-app.options('*', cors());  // enable pre-flight
+app.options('/{*splat}', cors());  // enable pre-flight (Express 5 syntax of Express 4's '*': every path, '/' included)
 
 //websocket
 io.on('connection', client => {
