@@ -2,7 +2,9 @@ const express = require('express');
 const app = express()
 const cors = require('cors')
 const server = require('http').createServer(app);
-const io = require('socket.io')(server);
+// Socket.IO 4, kept compatible with the existing Socket.IO v2 clients (Engine.IO 3) and with what
+// Socket.IO 2 did by default: any origin allowed for HTTP long-polling (origin echoed, with credentials).
+const io = require('socket.io')(server, {allowEIO3: true, cors: {origin: true, credentials: true}});
 const fw = require('./fileWatcher.js');
 const { exec } = require('child_process');
 

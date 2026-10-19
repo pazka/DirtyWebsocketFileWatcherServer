@@ -116,6 +116,15 @@ test('a Socket.IO v2 client (Engine.IO 3, polling then websocket) receives "list
     }
 })
 
+test('a protocol v4 client (Engine.IO 4, as socket.io-client 3/4) receives "list-updated" and "ports-updated"', async () => {
+    const c = await connectEio4()
+    try {
+        await bothEvents(c, 'room-v4\n')
+    } finally {
+        c.close()
+    }
+})
+
 test('CORS: a cross-origin Engine.IO 3 polling handshake is allowed (origin echoed, with credentials)', async () => {
     const r = await fetch(BASE + '/socket.io/?EIO=3&transport=polling', {headers: {origin: 'https://anywhere.example'}})
     assert.equal(r.status, 200)
@@ -133,6 +142,33 @@ async function bothEvents(c, content) {
     const p = await ports
     assert.equal(typeof p, 'string')
     assert.ok(p.includes('####') || p.includes('sudo netstat -tulpn'), p.slice(0, 200))
+}
+
+// Minimal Engine.IO 4 / Socket.IO protocol 5 client (what socket.io-client 3.x/4.x speaks) over HTTP
+// long-polling, on fetch: proves the v4 protocol without adding a dependency. Exposes once()/close().
+async function connectEio4() {
+    const open = await (await fetch(BASE + '/socket.io/?EIO=4&transport=polling')).text()
+    assert.equal(open[0], '0', open.slice(0, 200)) // Engine.IO 4 open packet, no length prefix
+    const url = BASE + '/socket.io/?EIO=4&transport=polling&sid=' + JSON.parse(open.slice(1)).sid
+    const post = body => fetch(url, {method: 'POST', body, headers: {'content-type': 'text/plain;charset=UTF-8'}})
+    assert.equal(await (await post('40')).text(), 'ok') // connect to namespace "/"
+    const events = new (require('node:events'))()
+    let closed = false
+    ;(async () => {
+        while (!closed) {
+            let body
+            try { body = await (await fetch(url)).text() } catch { return }
+            for (const p of body.split('\x1e')) { // packet separator
+                if (p === '2') post('3').catch(() => {}) // ping -> pong
+                else if (p.startsWith('40')) events.emit('connect')
+                else if (p.startsWith('42')) { const [ev, data] = JSON.parse(p.slice(2)); events.emit(ev, data) }
+                else if (p === '1' || p.startsWith('41')) closed = true
+            }
+        }
+    })()
+    await next(events, 'connect')
+    events.close = () => { closed = true; post('1').catch(() => {}) }
+    return events
 }
 
 test('the watched path cannot be chosen: the CLI argument is ignored, only ./test.txt is watched', async () => {
