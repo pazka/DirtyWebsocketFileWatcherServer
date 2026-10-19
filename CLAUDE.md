@@ -1,6 +1,6 @@
 # CLAUDE.md — pazka/DirtyWebsocketFileWatcherServer
 
-Small Express + Socket.IO 2 server: broadcasts changes of `./test.txt` and the host's listening ports to
+Small Express 5 + Socket.IO 4 server (`allowEIO3`: its existing Socket.IO v2 clients still connect): broadcasts changes of `./test.txt` and the host's listening ports to
 websocket clients (port 43000). Owner: Alexandre (pazka). Read **TESTING.md** first (it holds the
 dependency upgrade ranking).
 
