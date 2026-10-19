@@ -49,7 +49,7 @@ The PR branches themselves predate master's commit 15a40db (port poll 60 s → 5
 the "5 s poll" test; ask Dependabot to rebase (`@dependabot rebase`) before merging. They also conflict with
 each other on `package-lock.json`: merge one, let the others rebase.
 
-Simplest single step, also validated: **`npm audit fix`** (no `--force`) → express 4.22.3, socket.io 2.5.1,
+**Applied 2026-10-19** (supersedes #3–#7): **`npm audit fix`** (no `--force`) → express 4.22.3, socket.io 2.5.1,
 engine.io 3.6.2, ws 7.5.13, qs 6.16.1; 6/6 on Node 20 and 26; advisories 19 → **8 (1 critical)**.
 
 Not safe without a decision: the remaining critical (`socket.io-parser` 3.x) is only fixed in Socket.IO 4,
