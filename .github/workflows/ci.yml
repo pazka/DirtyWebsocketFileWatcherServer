@@ -1,0 +1,26 @@
+name: ci
+# Upgrade safety net (see TESTING.md). Every PR (incl. Dependabot), master, and agent/** branches
+# (an agent gets CI without opening a PR). No image, nothing is pushed.
+on:
+  pull_request:
+  push:
+    branches: [master, 'agent/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: server tests (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    container: node:${{ matrix.node }}-alpine
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '26']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci --no-audit --no-fund
+      - run: node --test --test-reporter=spec test/server.test.js
