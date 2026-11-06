@@ -8,12 +8,12 @@ so dependency upgrades can be merged on a green CI run.
 `index.js`: Express 5 + Socket.IO 4 (`allowEIO3`, so Socket.IO v2 clients still connect) on port 43000 (hard-coded). Watches `./test.txt` (relative to the working
 directory) and broadcasts its content as `list-updated`; `POST /ports` runs `sudo netstat -tulpn` and
 broadcasts the output as `ports-updated` (also once, 5 s after start). No Dockerfile, no deployment workflow;
-no `engines` field — CI uses Node 20 and 26.
+no `engines` field — CI uses Node 26 LTS (Node 20 is EOL since 2026-04-30, pazka/hosh-management#5).
 
 ## Run it
 
 ```bash
-docker run --rm -v "$PWD":/src:ro node:20-alpine sh -c \
+docker run --rm -v "$PWD":/src:ro node:26-alpine sh -c \
   'mkdir /a && cd /src && tar --exclude=./node_modules -cf - . | tar -xf - -C /a && cd /a \
    && npm ci && node --test --test-reporter=spec test/server.test.js'
 ```
