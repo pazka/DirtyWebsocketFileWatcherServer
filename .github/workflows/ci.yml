@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '26']
+        node: ['26']  # Node 20 is EOL (2026-04-30); 26 LTS only (pazka/hosh-management#5)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: npm ci --no-audit --no-fund
