@@ -8,6 +8,11 @@ updates:
     groups:
       npm-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      # Test-only client pinned to v2 on purpose: it proves that the existing Socket.IO v2 clients
+      # still connect (allowEIO3, see TESTING.md). A v3/v4 client would remove that proof.
+      - dependency-name: socket.io-client
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule: { interval: monthly }
