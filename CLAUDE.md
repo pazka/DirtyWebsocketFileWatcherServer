@@ -6,7 +6,7 @@ dependency upgrade ranking).
 
 ## Maintenance (autonomous agent)
 Goal: bring the 2019-era dependencies up to date **without changing behaviour**.
-- **Gate = `ci` green**: `server tests (node 20|26)`.
+- **Gate = `ci` green**: `server tests (node 26)`.
 - **Branches**: work on `agent/<topic>`; CI runs without a PR. Never push to `master`. **The owner merges.**
 - **Dependabot PRs**: they are stale against master; test them as described in TESTING.md, ask for a rebase.
   Green → summarise risk in a PR comment.
